@@ -57,7 +57,7 @@
 				]
 			},
 			{
-				"name": "Data flow1",
+				"name": "df_quakes",
 				"type": "ExecuteDataFlow",
 				"state": "Inactive",
 				"onInactiveMarkAs": "Succeeded",
