@@ -1,0 +1,35 @@
+{
+	"name": "ds_adls_quakes",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls_quakes",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"DirectoryPath": {
+				"type": "string"
+			},
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().DirectoryPath",
+					"type": "Expression"
+				},
+				"fileSystem": "data"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

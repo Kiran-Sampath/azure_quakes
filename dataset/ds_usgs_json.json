@@ -1,0 +1,19 @@
+{
+	"name": "ds_usgs_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http_usgs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "earthquakes/feed/v1.0/summary/all_hour.geojson"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

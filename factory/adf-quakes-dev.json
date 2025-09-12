@@ -1,0 +1,9 @@
+{
+	"name": "adf-quakes-dev",
+	"location": "westus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "67b45cd6-8382-4507-a78a-f3456d3ffba6",
+		"tenantId": "41f88ecb-ca63-404d-97dd-ab0a169fd138"
+	}
+}
