@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-quakes-dev"
+		},
+		"ls_sql_quakes_password": {
+			"value": ""
+		},
+		"ls_adls_quakes_properties_typeProperties_url": {
+			"value": "https://stquakesdev123.dfs.core.windows.net/"
+		},
+		"ls_http_usgs_properties_typeProperties_url": {
+			"value": "https://earthquake.usgs.gov/"
+		},
+		"ls_sql_quakes_properties_typeProperties_server": {
+			"value": "sql-quake-dev.database.windows.net"
+		},
+		"ls_sql_quakes_properties_typeProperties_database": {
+			"value": "quakesdb"
+		},
+		"ls_sql_quakes_properties_typeProperties_userName": {
+			"value": "KiranSampath"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
