@@ -59,9 +59,14 @@
 			{
 				"name": "Data flow1",
 				"type": "ExecuteDataFlow",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Copy_USGS_to_Raw",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -71,6 +76,16 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_flatten_quakes",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"source1": {
+								"DirectoryPath": "@concat('raw/', formatDateTime(utcNow(), 'yyyy/MM/dd/HH'))",
+								"FileName": "earthquakes.json"
+							}
+						}
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
