@@ -100,9 +100,14 @@
 					{
 						"name": "Data flow1",
 						"type": "ExecuteDataFlow",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Copy_USGS_to_Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -112,6 +117,19 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_flatten_quakes",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {
+										"DirectoryPath": "@concat('raw/', formatDateTime(utcNow(), 'yyyy/MM/dd/HH'))",
+										"FileName": "earthquakes.json"
+									},
+									"sink1": {},
+									"regular": {}
+								}
+							},
 							"staging": {},
 							"compute": {
 								"coreCount": 8,
@@ -134,7 +152,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_usgs_json')]",
-				"[concat(variables('factoryId'), '/datasets/ds_adls_quakes')]"
+				"[concat(variables('factoryId'), '/datasets/ds_adls_quakes')]",
+				"[concat(variables('factoryId'), '/dataflows/df_flatten_quakes')]"
 			]
 		},
 		{
@@ -177,6 +196,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_alerts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_quakes",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "earthquake_alerts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_quakes')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_sql_quakes')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -188,7 +228,10 @@
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
-				"typeProperties": {}
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "earthquakes"
+				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_sql_quakes')]"
@@ -266,6 +309,116 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_flatten_quakes')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_adls_quakes",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_alerts",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sql_quakes",
+								"type": "DatasetReference"
+							},
+							"name": "regular"
+						}
+					],
+					"transformations": [
+						{
+							"name": "flatten1"
+						},
+						{
+							"name": "derive1"
+						},
+						{
+							"name": "filterdq"
+						},
+						{
+							"name": "split1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          bbox as double[],",
+						"          features as (geometry as (coordinates as double[], type as string), id as string, properties as (alert as string, cdi as string, code as string, detail as string, dmin as double, felt as string, gap as short, ids as string, mag as double, magType as string, mmi as string, net as string, nst as short, place as string, rms as double, sig as short, sources as string, status as string, time as long, title as string, tsunami as boolean, type as string, types as string, tz as string, updated as long, url as string), type as string)[],",
+						"          metadata as (api as string, count as short, generated as long, status as short, title as string, url as string),",
+						"          type as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     documentForm: 'singleDocument') ~> source1",
+						"source1 foldDown(unroll(features),",
+						"     mapColumn(",
+						"          id = features.id,",
+						"          properties_time = features.properties.time,",
+						"          properties_updated = features.properties.updated,",
+						"          mag = features.properties.mag,",
+						"          place = features.properties.place,",
+						"          url = features.properties.url,",
+						"          felt = features.properties.felt,",
+						"          tsunami = features.properties.tsunami,",
+						"          sig = features.properties.sig,",
+						"          type = features.properties.type,",
+						"          coords = features.geometry.coordinates",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> flatten1",
+						"flatten1 derive(time_utc = toTimestamp(toString(round(properties_time / 1000)), 's'),",
+						"          updated_utc = toTimestamp(toString(round(properties_updated / 1000)), 's'),",
+						"          lon = toFloat(coords[1]),",
+						"          lat = toFloat(coords[2]),",
+						"          depth_km = toFloat(coords[3])) ~> derive1",
+						"derive1 filter(!isNull(lon) && !isNull(lat) && (isNull(mag) || (mag >= -1 && mag <= 10))) ~> filterdq",
+						"filterdq split(mag > 5.0,",
+						"     disjoint: false) ~> split1@(Alerts, Regular)",
+						"split1@Alerts sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1",
+						"split1@Regular sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> regular"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_adls_quakes')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_alerts')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_quakes')]"
+			]
 		}
 	]
 }
