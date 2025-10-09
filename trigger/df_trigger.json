@@ -16,11 +16,11 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2025-10-09T22:01:00",
+				"startTime": "2025-10-08T22:01:00",
 				"timeZone": "US Mountain Standard Time",
 				"schedule": {
 					"minutes": [
-						15
+						20
 					],
 					"hours": [
 						15
