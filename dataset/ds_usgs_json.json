@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "HttpServerLocation",
-				"relativeUrl": "earthquakes/feed/v1.0/summary/all_hour.geojson"
+				"relativeUrl": "earthquakes/feed/v1.0/summary/all_day.geojson"
 			}
 		},
 		"schema": {}
