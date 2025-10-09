@@ -94,11 +94,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"ingestTime": {
-				"type": "string"
-			}
-		},
 		"annotations": [],
 		"lastPublishTime": "2025-09-12T18:32:00Z"
 	},
