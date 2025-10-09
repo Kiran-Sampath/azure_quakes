@@ -142,11 +142,6 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
-				"parameters": {
-					"ingestTime": {
-						"type": "string"
-					}
-				},
 				"annotations": [],
 				"lastPublishTime": "2025-09-12T18:32:00Z"
 			},
@@ -251,7 +246,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "HttpServerLocation",
-						"relativeUrl": "earthquakes/feed/v1.0/summary/all_hour.geojson"
+						"relativeUrl": "earthquakes/feed/v1.0/summary/all_day.geojson"
 					}
 				},
 				"schema": {}
@@ -418,6 +413,44 @@
 				"[concat(variables('factoryId'), '/datasets/ds_adls_quakes')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sql_alerts')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sql_quakes')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_quakes",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2025-10-09T22:01:00",
+						"timeZone": "US Mountain Standard Time",
+						"schedule": {
+							"minutes": [
+								15
+							],
+							"hours": [
+								15
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_quakes')]"
 			]
 		}
 	]
