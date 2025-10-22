@@ -306,6 +306,44 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/df_trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_quakes",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2025-10-08T22:01:00",
+						"timeZone": "US Mountain Standard Time",
+						"schedule": {
+							"minutes": [
+								20
+							],
+							"hours": [
+								15
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_quakes')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/df_flatten_quakes')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -413,44 +451,6 @@
 				"[concat(variables('factoryId'), '/datasets/ds_adls_quakes')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sql_alerts')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sql_quakes')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_trigger')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "pl_quakes",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2025-10-08T22:01:00",
-						"timeZone": "US Mountain Standard Time",
-						"schedule": {
-							"minutes": [
-								20
-							],
-							"hours": [
-								15
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pl_quakes')]"
 			]
 		}
 	]
